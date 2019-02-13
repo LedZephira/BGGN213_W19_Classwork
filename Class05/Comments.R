@@ -2,7 +2,7 @@
 #' title: "Graphs for Lecture 5"
 #' author: "Asha Goodman"
 #' date: "Fri Jan 25 13:32:21 2019"
-#' output: html_document
+#' output: github_documents
 #' ---
 
 # Class 5 graphics and plots with R
