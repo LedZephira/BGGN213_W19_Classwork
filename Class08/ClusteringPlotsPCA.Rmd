@@ -2,7 +2,7 @@
 title: "Clustering_and_PCA"
 author: "Asha Goodman"
 date: "2/6/2019"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
