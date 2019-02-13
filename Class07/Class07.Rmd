@@ -2,7 +2,7 @@
 title: "Class 7 Functions and Packages"
 author: "Asha Goodman"
 date: "1/30/2019"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}

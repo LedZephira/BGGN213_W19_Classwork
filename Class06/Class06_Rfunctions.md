@@ -239,7 +239,7 @@ rap_pdb_forme("4AKE")
     ##   Note: Accessing on-line PDB file
 
     ## Warning in get.pdb(file, path = tempdir(), verbose = FALSE): /var/folders/
-    ## 36/h1nlfl81237009k9zbnc0y6c0000gn/T//RtmpzVrNoM/4AKE.pdb exists. Skipping
+    ## 36/h1nlfl81237009k9zbnc0y6c0000gn/T//RtmpyrxeU5/4AKE.pdb exists. Skipping
     ## download
 
 ![](Class06_Rfunctions_files/figure-markdown_github/unnamed-chunk-13-1.png)
@@ -251,7 +251,7 @@ rap_pdb_forme("1AKE")
     ##   Note: Accessing on-line PDB file
 
     ## Warning in get.pdb(file, path = tempdir(), verbose = FALSE): /var/folders/
-    ## 36/h1nlfl81237009k9zbnc0y6c0000gn/T//RtmpzVrNoM/1AKE.pdb exists. Skipping
+    ## 36/h1nlfl81237009k9zbnc0y6c0000gn/T//RtmpyrxeU5/1AKE.pdb exists. Skipping
     ## download
 
     ##    PDB has ALT records, taking A only, rm.alt=TRUE
@@ -265,7 +265,7 @@ rap_pdb_forme("1E4Y")
     ##   Note: Accessing on-line PDB file
 
     ## Warning in get.pdb(file, path = tempdir(), verbose = FALSE): /var/folders/
-    ## 36/h1nlfl81237009k9zbnc0y6c0000gn/T//RtmpzVrNoM/1E4Y.pdb exists. Skipping
+    ## 36/h1nlfl81237009k9zbnc0y6c0000gn/T//RtmpyrxeU5/1E4Y.pdb exists. Skipping
     ## download
 
 ![](Class06_Rfunctions_files/figure-markdown_github/unnamed-chunk-13-3.png)

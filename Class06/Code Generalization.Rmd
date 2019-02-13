@@ -2,9 +2,7 @@
 title: "Code Generalization"
 author: "Asha Goodman"
 date: "1/29/2019"
-output:
-  html_document: default
-  pdf_document: default
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
