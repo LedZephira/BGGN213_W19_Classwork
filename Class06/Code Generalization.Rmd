@@ -1,0 +1,49 @@
+---
+title: "Code Generalization"
+author: "Asha Goodman"
+date: "1/29/2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Can you improve this analysis code?
+```{r}
+library(bio3d)
+Test <- read.pdb("4AKE") 
+Control <- read.pdb("1AKE") 
+Test2 <- read.pdb("1E4Y") 
+Test.chainA <- trim.pdb(Test, chain="A", elety="CA")
+Control.chainA <- trim.pdb(Control, chain="A", elety="CA")
+Test2.chainA <- trim.pdb(Test2, chain="A", elety="CA")
+Test.b <- Test.chainA$atom$b
+Control.b <- Control.chainA$atom$b
+Test2.b <- Test2.chainA$atom$b
+plotb3(Test.b, sse=Test.chainA, typ="l", ylab="Bfactor")
+plotb3(Control.b, sse=Control.chainA, typ="l", ylab="Bfactor")
+plotb3(Test2.b, sse=Test2.chainA, typ="l", ylab="Bfactor")
+```
+
+Answered simply, yes we can. Note we have now made a new function that encompasses the previous functions that **R**eads, trims, **a**nd **P**lots a **pdb for me** or "rap_pdb_forme". This function takes advantage of vectors and their isolation in the function. For example, although we have assigned "x2" as a read.pdb file, that vector does not exist outside of this function. You may use this function as though it is a read.pdb function, and simply insert the name of your protein of interest e.g. "4AKE".
+
+This function reads the pdb file, identifies the "A" chains and the atom type (elety) and draws a standard scatter plot with lines. The plot has residues as the x-axis and a y-axis labelled "Bfactor".
+
+```{r}
+library(bio3d)
+rap_pdb_forme <- function(x){
+  for (i in x){
+  x2 <- read.pdb(i)
+  if (i == numeric){
+    stop("Input x is not a pdb file name")
+  }
+  x3.b <- trim.pdb(x2, chain="A", elety = "CA")
+  x4.chainA <- x3.b$atom$b
+  plotb3(x4.chainA, sse = x3.b, typ="l", ylab="Bfactor")
+  }
+}
+rap_pdb_forme(c("4AKE", "1AKE", "1E4Y"))
+```

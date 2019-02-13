@@ -1,0 +1,75 @@
+---
+title: "Class 7 Functions and Packages"
+author: "Asha Goodman"
+date: "1/30/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Functions revisited
+
+Load (i.e. **source**) our rescae() function from the last day.
+
+```{r}
+source("http://tinyurl.com/rescale-R")
+```
+
+Test this function
+
+> rescale(c (1:5, "string"))
+
+If you were to run this function, "Error in x - rng[1] : non-numeric argument to binary operator" would appear, saying this error happens in the function.
+
+We want to make this function more robust to these types of errors.
+The warning() and stop() functions are helpful. Both pring a user defined messsage. Warning() will keep going on however, while stop() keeps going. But it's better to fail early and loudly.
+
+example:
+
+>  if(!is.numeric(x) )
+>  stop(("input"" x "should be numeric", call.FALSE))
+
+This bit of code can be put into rescale, thus rescale 2.
+
+> rescale2( c(1:5, "string") )
+
+gives us Error: Input x should be numeric Execution halted.
+
+> x <- c(NA, NA, NA)
+> y1 <- c(1, NA, NA)
+> y2 <- c( 1, NA, NA, NA)
+> y3 <- c(1, NA, NA, NA, NA)
+
+what will this return?
+
+> both_na(x, y2) 
+
+```{r}
+x <- c(NA, NA, NA)
+y1 <- c(1, NA, NA)
+y2 <- c( 1, NA, NA, NA)
+y3 <- c(1, NA, NA, NA, NA)
+
+both_na(x, y2)
+```
+
+```{r}
+both_na(x, y3)
+```
+
+```{r}
+both_na2(x, y2)
+```
+```{r}
+# Lets make an example
+x2 <- c(NA, 2, NA, 4, 5)
+y <- c(5, 4, NA, 2, NA)
+both_na3(x2, y)
+```
+
+
+
+
+

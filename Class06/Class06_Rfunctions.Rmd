@@ -1,0 +1,151 @@
+---
+title: "Class 6 R Functions"
+author: "Asha Goodman"
+date: "1/25/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## File reading (again!)
+
+Here we try to use **read.table()** and friends to input some example data into R.
+
+Lets insert a code chunk.
+```{r}
+read.csv("https://bioboot.github.io/bggn213_S18/class-material/test1.txt")
+```
+
+```{r}
+file2  <- "https://bioboot.github.io/bggn213_S18/class-material/test2.txt"
+read.csv(file2, sep = "$")
+```
+
+```{r}
+file3 <- "https://bioboot.github.io/bggn213_S18/class-material/test3.txt"
+data3 <- read.table(file3)
+data3
+```
+
+## R Functions
+
+My first function
+```{r}
+add <- function(x, y=1) {
+  #sum x and y
+  x + y
+}
+```
+Lets use the **add** function
+```{r}
+add(1,50)
+```
+
+This is a purposeful error:
+add(x=1,y="b")
+
+# Our Second Function
+```{r}
+rescale <- function(x) {
+ rng <-range(x)
+ (x - rng[1]) / (rng[2] - rng[1])
+}
+```
+
+How would our function work here?
+```{r}
+rescale( c(1,2,NA,3,10) )
+```
+Well we have to change our function to omit "NA"s
+rescale <- function(x) {
+ rng <-range(x, **na.rm=true**)
+ (x - rng[1]) / (rng[2] - rng[1])
+}
+```{r}
+rescale <- function(x) {
+ rng <-range(x, na.rm=T)
+ (x - rng[1]) / (rng[2] - rng[1])
+}
+rescale( c(1,2,NA,3,10))
+```
+
+Or here?
+
+rescale( c(1,10,”string”) )
+
+
+rescale <- function(x) {
+ rng <-range(...)
+ (x - rng[1]) / (rng[2] - rng[1])
+ rescale( c(1,10,”string”) )
+# Print Function
+```{r}
+rescale3 <- function(x, na.rm=TRUE, plot=FALSE)
+{
+ if(na.rm) {
+ rng <-range(x, na.rm=na.rm)
+ } else {
+ rng <-range(x)
+ }
+ print("Hello")
+ answer <- (x - rng[1]) / (rng[2] - rng[1])
+
+ print("is it me you are looking for?")
+ if(plot) {
+ plot(answer, typ="b", lwd=4)
+ }
+ print("I can see it in ...")
+ return(answer)
+}
+rescale3(1:10)
+```
+
+## Using the Bio3d package
+
+Have to go to the library to get the package before you use it every time.
+```{r}
+library(bio3d)
+```
+
+What's in this pdb?
+```{r}
+pdb <- read.pdb("1hbs")
+pdb
+```
+# Can you improve this analysis code?
+```{r}
+library(bio3d)
+Test <- read.pdb("4AKE") # kinase with drug
+Control <- read.pdb("1AKE") # kinase no drug
+Test2 <- read.pdb("1E4Y") # kinase with drug
+Test.chainA <- trim.pdb(Test, chain="A", elety="CA")
+Control.chainA <- trim.pdb(Control, chain="A", elety="CA")
+Test2.chainA <- trim.pdb(Test2, chain="A", elety="CA")
+Test.b <- Test.chainA$atom$b
+Control.b <- Control.chainA$atom$b
+Test2.b <- Test2.chainA$atom$b
+plotb3(Test.b, sse=Test.chainA, typ="l", ylab="Bfactor")
+plotb3(Control.b, sse=Control.chainA, typ="l", ylab="Bfactor")
+plotb3(Test2.b, sse=Test2.chainA, typ="l", ylab="Bfactor")
+```
+
+# Answered simply, yes we can. Note we have now made a new function that encompasses the previous functions that **R**eads **a**nd **P**lots a **pdb for me** or "rap_pdb_forme". This function takes advantage of vectors and their isolation in the function. For example, although we have assigned "x2" as a read.pdb file, that vector does not exist outside of this function. You may use this function as though it is a read.pdb function, and simply insert the name of your protein of interest e.g. "4AKE".
+
+# This function reads the pdb file, identifies the "A" chains and the atom type (elety) and draws a standard scatter plot with lines. The plot has residues as the x-axis and a y-axis labelled "Bfactor".
+
+```{r}
+library(bio3d)
+rap_pdb_forme <- function(x){
+  x2 <- read.pdb(x)
+  x3.b <- trim.pdb(x2, chain="A", elety = "CA")
+  x4.chainA <- x3.b$atom$b
+  plotb3(x4.chainA, sse = x4.chainA, typ="l", ylab="Bfactor")
+}
+rap_pdb_forme("4AKE")
+rap_pdb_forme("1AKE")
+rap_pdb_forme("1E4Y")
+```
+
+

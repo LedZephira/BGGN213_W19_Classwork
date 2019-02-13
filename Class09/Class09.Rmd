@@ -1,0 +1,154 @@
+---
+title: "Class09Project"
+author: "Asha Goodman"
+date: "2/8/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+ 
+```{r}
+fna.data <- "WisconsinCancer.csv"
+wisc.df <- read.csv(fna.data)
+```
+
+Always double check your data...
+```{r}
+head(wisc.df)
+```
+Looks like there is a funny last column :x:. Lets check how many samples (i.e. patients) and features (i.e. cols) are in this data
+We want to find out how many patients, nrows tells us how many subjects..
+
+```{r}
+#number of patients
+nrow(wisc.df)
+
+# number of patients
+ncol(wisc.df)
+ 
+# To get both, use dim
+dim(wisc.df)
+
+# Want to get rid of patient ID (may want it in the future but for now we don't), and funny column, so take col 3 - 32
+wisc.data <- wisc.df[,3:32]
+head(wisc.data)
+```
+Add patient ID as row names of our data.
+```{r}
+# This lists the row names
+rownames(wisc.data)
+
+# But we want to tie the patient ids
+rownames(wisc.data) <- wisc.df$id
+head(wisc.data)
+```
+We want to find out how many cancer and noncancer data in this set? Table function will produce qauntification of the diagnoses.
+```{r}
+table(wisc.df$diagnosis)
+
+
+```
+How many of our columns include mean values? We would search column names and the grep function which tells us where in the vector our pattern is.
+```{r}
+# colnames(wisc.data)
+grep("mean", colnames(wisc.data))
+```
+But how do we quantify these values?
+```{r}
+length(grep("mean", colnames(wisc.data)))
+```
+Also...
+```{r}
+inds <- grep("mean", colnames(wisc.data))
+colnames(wisc.data)[inds]
+# Finally, setup a separate new vector called diagnosis to be 1 if a diagnosis is malignant ("M") and 0 otherwise. Note that R coerces TRUE to 1 and FALSE to 0.
+
+# Create diagnosis vector by completing the missing code
+diagnosis <- as.numeric(wisc.df$diagnosis == "M")
+diagnosis
+```
+## Now it's time to do PCA!
+
+Scaling apply(x, #, pattern), x is your data, # = 1 would be rows, 2 is columns, pattern is mean, sd etc. And what it would give us is many sig figs, so rounding to '2' values is better.
+
+When using the prcomp function, the scale function by default is false.
+```{r}
+round( apply(wisc.data,2,sd), 2)
+wisc.pr  <- prcomp(wisc.data, scale = TRUE)
+summary(wisc.pr)
+```
+```{r}
+attributes(wisc.pr)
+```
+```{r}
+# This is a basic first plot
+biplot(wisc.pr)
+
+# This is going to be our more traditional pca plot
+plot( wisc.pr$x[,1], wisc.pr$x[,2] , col = wisc.df$diagnosis, 
+     xlab = "PC1", ylab = "PC2")
+
+```
+
+```{r}
+variance <- wisc.pr$sdev^2
+pve <- round((variance/sum(variance))*100,2)
+plot(pve, type="o")
+pr.var <- pve
+head(pr.var)
+```
+To get data-driven axeses, see below.
+```{r}
+barplot(pve, ylab = "Percent of Variance Explained",
+     names.arg=paste0("PC",1:length(pve)), las=2, axes = FALSE)
+axis(2, at=pve, labels=round(pve,2)*100 )
+```
+## CLustering in Principal COmponent Space
+
+For hclust we need a distance matrix and wee get this from our PCA results (i.e. wisc.pr$x)
+```{r}
+d <- dist(wisc.pr$x[,1:2])
+hc <- hclust(d, method="ward.D2")
+plot(hc)
+```
+Now we want three maor groups.
+```{r}
+# cutree(hc, k=3) is our command
+grps3 <- cutree(hc, k=3)
+table(grps3)
+
+```
+Let's color our PCA plot by cluster.
+
+```{r}
+plot( wisc.pr$x[,1], wisc.pr$x[,2] , col = grps3, 
+     xlab = "PC1", ylab = "PC2")
+```
+Cross tabulation
+```{r}
+# table(grps3)
+table(grps3, diagnosis)
+```
+
+```{r}
+plot( wisc.pr$x[,1:2], col = grps3, 
+     xlab = "PC1", ylab = "PC2")
+```
+```{r}
+plot(wisc.pr$x[,1:2], col=diagnosis+1)
+```
+Prediction function will take our PCA model from before and new cancer cell data and project that data onto our PCA space. So let's bring in the new data.
+```{r}
+url <- "new_samples.csv"
+new <- read.csv(url)
+npc <- predict (wisc.pr, newdata=new)
+```
+And now let's plot the new data onto our graphs.
+```{r}
+plot(wisc.pr$x[,1:2], col=wisc.df$diagnosis)
+points(npc[,1], npc[,2], col=c("green","blue"), pch=16, cex=3)
+```
+
+
