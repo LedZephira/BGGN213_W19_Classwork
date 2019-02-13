@@ -1,0 +1,44 @@
+---
+title: "PracticePCA"
+author: "Asha Goodman"
+date: "2/6/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+uk <- read.csv("UK_foods.csv")
+summary(uk)
+attributes(uk)
+```
+(Everything *but* the first column, [,-1] is the command). We want our data to look like the second window.
+```{r}
+rownames(uk) <- uk[,1]
+head(uk)
+uk[,-1]
+```
+But to fix it properly, and it being safer, read it in properly to begin with. So note the new vector name (just uk but capitalized).
+```{r}
+UK <- read.csv("UK_foods.csv", row.names=1)
+UK
+```
+
+```{r}
+DRaC <- dim(UK)
+DRaC
+RaC <- c(nrow(UK),ncol(UK))
+RaC
+```
+
+
+## PCA to the rescue
+```{r}
+pca <- prcomp(t(UK))
+summary(pca)
+plot(pca$x[,1],pca$x[,2], xlab="PC1", ylab="PC2")
+text(pca$x[,1],pca$x[,2], labels=colnames(UK), col=c("orange", "red","blue","green"))
+```
+

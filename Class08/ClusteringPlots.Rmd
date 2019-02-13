@@ -1,0 +1,156 @@
+---
+title: "Clustering_and_PCA"
+author: "Asha Goodman"
+date: "2/6/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# K means clustering
+K means function: x is your argument, center is how many k's you want (groups) and nstart is how many iterations you want
+
+ Script: kmeans(x, center=3, nstart=20)
+
+Generate some example data for clustering
+```{r}
+tmp <- c(rnorm(30,-3), rnorm(30,3))
+x <- cbind(x=tmp, y=rev(tmp))
+plot(x)
+
+```
+```{r}
+km <- kmeans(x, center=3, nstart=20)
+km
+```
+```{r}
+km2 <- kmeans(x, center=2, nstart=20)
+km2
+```
+
+```{r}
+
+km4 <- kmeans(x, center=4, nstart=20)
+km4
+```
+Size of clusters
+```{r}
+km$cluster
+plot(x, col=km2$cluster)
+points(km2$centers, col="blue", pch=15, cex=3)
+```
+
+# Moving to Hierarchal Clustering
+
+First we need to calculate point (dis)similarity as the Euclidean distance between observations > dist_matrix <- dist(x)
+
+The hclust() function returns a hierarchical clustering model
+> hc <- hclust(d = dist_matrix) 
+
+the print method is not so useful here
+
+```{r}
+dist_matrix <- dist(x)
+hc <- hclust(d = dist_matrix)
+hc
+```
+How do we view this?
+```{r}
+plot(hc)
+abline(h=6, col="red")
+grp2 <- cutree(hc, h=6)
+```
+
+
+```{r}
+plot(x, col=grp2)
+table(grp2)
+```
+Can also cut by K means/groups
+```{r}
+plot(hc)
+abline(h=6, col="red")
+cutree(hc, k=2)
+```
+
+
+
+
+
+
+Our input is a distance matrix from the dist() function. Lets make sure we understand it first
+
+```{r}
+dist_matrix <- dist(x)
+dim(dist_matrix)
+View( as.matrix(dist_matrix) )
+dim(x)
+dim( as.matrix(dist_matrix) )
+```
+Note. symmetrical pairwise distance matrix
+
+Plotting Linkage Methods
+```{r}
+hc.complete <- hclust(dist_matrix, method="complete")
+plot(hc.complete)
+hc.average <- hclust(dist_matrix, method="average")
+plot(hc.average)
+hc.single <- hclust(dist_matrix, method="single")
+plot(hc.single)
+```
+
+Step 1. Generate some example data for clustering
+```{r}
+y <- rbind(
+ matrix(rnorm(100, mean=0, sd = 0.3), ncol = 2), # c1
+ matrix(rnorm(100, mean = 1, sd = 0.3), ncol = 2), # c2
+ matrix(c(rnorm(50, mean = 1, sd = 0.3), # c3
+ rnorm(50, mean = 0, sd = 0.3)), ncol = 2))
+colnames(y) <- c("x", "y")
+
+y
+```
+
+Step 2. Plot the data without clustering
+```{r}
+plot(y)
+```
+Step 3. Generate colors for known clusters
+(just so we can compare to hclust results)
+```{r}
+col <- as.factor( rep(c("c1","c2","c3"), each=50) )
+plot(y, col=col)
+```
+
+Q. Use the dist(), hclust(), plot() and cutree()
+ functions to return 2 and 3 clusters
+Q. How does this compare to your known 'col' groups?
+```{r}
+example_dmatrix <- dist(y)
+dim(example_dmatrix)
+View( as.matrix(example_dmatrix) )
+dim(y)
+dim( as.matrix(example_dmatrix) )
+
+ehc <- hclust(d = example_dmatrix)
+ehc
+
+```
+
+```{r}
+plot(ehc)
+ehcgroup2 <- cutree(ehc, k=2)
+ehcgroup3 <- cutree(ehc, k=3)
+plot(y, col=ehcgroup2)
+plot(y, col=ehcgroup3)
+
+ehc.complete <- hclust(example_dmatrix, method="complete")
+plot(ehc.complete)
+ehc.average <- hclust(example_dmatrix, method="average")
+plot(ehc.average)
+ehc.single <- hclust(example_dmatrix, method="single")
+plot(ehc.single)
+
+```
+
