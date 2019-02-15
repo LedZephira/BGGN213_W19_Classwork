@@ -1,0 +1,100 @@
+---
+title: "Class11"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## The PDB Database
+
+What percentage of structures solved by X-ray and electron microscopy? Also can
+you determine what proportion of structures are protein?
+
+```{r}
+prop <- read.csv("Data Export Summary.csv", row.names = 1)
+props_total <- prop$Total/sum(prop$Total)*100
+names(props_total) <- rownames(prop)
+props_total
+```
+Also can you determine what proportion of structures are protein?
+```{r}
+round(sum(prop$Proteins)/sum(prop$Total)*100, 1)
+```
+
+
+What if our data comes in another format? install.packages("datapasta"). Product isn't shown.
+```{r}
+tmp <- data.frame(stringsAsFactors=FALSE, row.names = 1,
+   Experimental.Method = c("X-Ray", "NMR", "Electron Microscopy", "Other",
+                           "Multi Method", "Total"),
+              Proteins = c(124770, 10988, 2057, 250, 127, 138192),
+         Nucleic.Acids = c(1993, 1273, 31, 4, 5, 3306),
+    ProteinNA.Complex = c(6451, 257, 723, 6, 2, 7439),
+                 Other = c(10, 8, 0, 13, 1, 32),
+                 Total = c(133224, 12526, 2811, 273, 135, 148969)
+)
+
+
+```
+## Section 3. Bio3D
+
+Let's access our PDB file.
+
+```{r}
+pdb <- read.pdb("1hsg")
+pdb
+```
+
+```{r}
+view(pdb, "overview", col="sse")
+```
+
+Extract the protein-only portion of this PDB structure and write it out to a new PDB file.
+
+
+To select the indices for all C-alpha atoms we can use the following command:
+```{r}
+ca.inds <- atom.select(pdb, "calpha")
+ca.inds
+```
+This produces the atom and xyz components and these numeric vectors can be used as indices to access the corresponding atom and xyz components of the input PDV structure obejct.
+To get the first few atoms..:
+```{r}
+head( pdb$atom[ca.inds$atom, ] )
+```
+And to get the xyz coordinates...:
+```{r}
+head( pdb$xyz[, ca.inds$xyz] )
+```
+The In addition to the common selection strings (such as ‘calpha’ ‘cbeta’ ‘backbone’ ‘protein’ ‘notprotein’ ‘ligand’ ‘water’ ‘notwater’ ‘h’ and ‘noh’) various individual atom properties can be used for selection.
+Extract the ligand (i.e. drug) and write out to a seperate file.
+```{r}
+# Select chain A
+a.inds <- atom.select(pdb, chain="A")
+# Select C-alphas of chain A
+ca.inds <- atom.select(pdb, "calpha", chain="A")
+# We can combine multiple selection criteria to return their intersection
+cab.inds <- atom.select(pdb, elety=c("CA","CB"), chain="A",
+resno=10:20)
+inds <- atom.select(pdb, "ligand")
+inds
+```
+```{r}
+inds$atom
+pdb$atom[inds$atom,]
+```
+
+```{r}
+ligand.pdb <- trim.pdb(pdb,inds)
+ligand.pdb
+```
+```{r}
+view(ligand.pdb)
+```
+
+```{r}
+write.pdb(ligand.pdb, file = "ligand.pdb")
+```
+
