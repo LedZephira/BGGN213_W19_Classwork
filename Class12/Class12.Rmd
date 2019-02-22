@@ -39,7 +39,18 @@ lig.filename
 modes <- nma(hiv)
 plot(modes)
 ```
+## Convert our docking results for viewin in VMD
+
 ```{r}
-~/Downloads/autodock_vina_1_1_2_mac/bin/vina --help
+res <- read.pdb("all.pdbqt", multi=TRUE)
+write.pdb(res, "results.pdb")
 ```
+
+# What is the RMSD to the MK1 compound from the crystal structur?
+```{r}
+# res <- read.pdb("all.pdbqt", multi=TRUE)
+ori <- read.pdb("ligand.pdbqt")
+rmsd(ori, res)
+```
+
 
