@@ -1,0 +1,45 @@
+---
+title: "Class 12 Drug Discovery"
+output: github_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## CLean up our protein target structure
+
+First we download a target strcutre from the main PDV database. We will pick PDB ID "1hsg".
+
+```{r}
+library(bio3d)
+hsgPDB <- get.pdb("1HSG")
+hsgPDB
+hiv <- read.pdb(hsgPDB)
+hiv
+```
+Then we want to extract the protein only segment of this PDB entry and write out a new PDB format file. We will aslo do the same for the bound ligand.
+```{r}
+proteinhiv <- trim.pdb(hiv, "protein")
+ligandhiv <- trim.pdb(hiv, "ligand")
+
+prot.filename <- paste(hsgPDB,"_protein.pdb", sep="")
+write.pdb(proteinhiv, file=prot.filename)
+#write.pdb(proteinhiv, file = "1hsg_protein.pdb")
+#write.pdb(ligandhiv, file = "1hsg_ligand.pdb")
+prot.filename
+
+lig.filename <- paste(hsgPDB, "_ligand.pdb", sep="")
+write.pdb(ligandhiv, file=lig.filename)
+lig.filename
+
+```
+
+
+```{r}
+#Normal mode analysis
+modes <- nma(hiv)
+plot(modes)
+```
+```{r}
+~/Downloads/autodock_vina_1_1_2_mac/bin/vina --help
+```
+
