@@ -1,0 +1,225 @@
+---
+title: "Class 14: Transcriptomics and the analysis of RNA-Seq data"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Transcriptomics and the analysis of RNA-Seq data
+
+Set up bioconductor and DESeq2
+>>source("http://bioconductor.org/biocLite.R")
+biocLite()
+
+For this class, you'll also need DESeq2:
+>>biocLite("DESeq2")
+## Data import
+
+Read in our Count (count data) and column data (metadata).
+```{r}
+counts <- read.csv("airway_scaledcounts.csv", stringsAsFactors = FALSE)
+metadata <-  read.csv("airway_metadata.csv", stringsAsFactors = FALSE)
+head(counts)
+metadata
+```
+
+How many genes in our dataset? How many exps?
+```{r}
+nrow(counts)
+ncol(counts)
+```
+
+## Time to perform some exploratory differential gene expression analysis.
+Extract control exps (i.e. columns of our **counts** object bse on the **metadata**).
+
+```{r}
+# Find the column names (ids) for the control experiments.
+control.ids <- metadata$id[metadata[,"dex"]=="control"]
+control <- counts[,control.ids]
+rownames(control) <- counts$ensgene
+head(control)
+control.ids
+
+# Find the column names (ids) for the treated experiments.
+treated.ids <- metadata$id[metadata[,"dex"]=="treated"]
+treated <- counts[,treated.ids]
+rownames(treated) <- counts$ensgene
+head(treated)
+```
+
+Let's check for metadata to counts correspondence:
+```{r}
+metadata$id
+colnames(counts)
+```
+It appears the first column from the list. So "-1" would work. But the easiest way would to -1 in brackets. And by calling a function to check if all instances are T/F use 'all':
+```{r}
+all (metadata$id == colnames(counts)[-1])
+```
+
+Find the mean counts value for each gene in control experiments.
+
+```{r}
+control.mean <- rowSums(control)/(nrow(control))
+names(control.mean) <- counts$ensgene
+# To check we have the right amount of columns
+ncol(control)
+# Now to do the same process for the treated experiments
+treated.mean <- rowSums(treated)/(nrow(control))
+```
+We want to keep our new values and put them into a data frame to plot!
+```{r}
+meancounts <- data.frame(control.mean, treated.mean)
+head(meancounts)
+colSums(meancounts)
+plot(meancounts)
+```
+We want to find a cadidate differentially expressed genes by looking for genes with a large change between control and dex-treated samples.
+```{r}
+meancounts$log2fc <- log2(meancounts[,"treated.mean"]/meancounts[,"control.mean"])
+head(meancounts)
+```
+
+We need to filter out the zero value entry genes...let's start with an example.
+```{r}
+# Here's an example of how to weed out zero values
+toy <- c(1,2,0,4,0)
+toy==0
+which(toy==0)
+
+newtoy <- cbind(toy,toy)
+newtoy==0
+which(newtoy==0, arr.ind=TRUE)
+#meancounts[,1:2]
+```
+
+Now for our data.
+```{r}
+zero.vals <- which(meancounts[,1:2]==0, arr.ind=TRUE)
+
+to.rm <- unique(zero.vals[,1])
+mycounts <- meancounts[-to.rm,]
+head(mycounts)
+```
+
+A common threshold used for calling something differentially xpressed is a log2(foldchange) of greater than or less than -2. Let's filter the dataset both ways to see homw many genes are up or down regulated.
+```{r}
+up.ind <- mycounts$log2fc > 2
+down.ind <- mycounts$log2fc < (-2)
+sum(up.ind)
+sum(down.ind)
+```
+
+But what do these identifiers mean to us?
+
+##  Adding annotation data from Ensemble annotation file
+
+```{r}
+anno <- read.csv("annotables_grch38.csv")
+head(anno)
+```
+
+Now we can try the **merge()** function to map our annotated genes to our **mycounts** results.
+```{r}
+mycounts.anno <- merge(x=mycounts, y=anno, by.x="row.names", by.y="ensgene")
+head(mycounts.anno)
+```
+In cases where you don’t have a preferred annotation file at hand you can use other Bioconductor packages for annotation.
+
+Bioconductor’s annotation packages help with mapping various ID schemes to each other. Here we load the AnnotationDbi package and the annotation package org.Hs.eg.db.
+
+```{r}
+library("AnnotationDbi")
+biocLite("org.Hs.eg.db")
+library("org.Hs.eg.db")
+```
+
+We can view the databases we can access.
+```{r}
+columns(org.Hs.eg.db)
+```
+We can use the mapIds() function to add individual columns to our results table. We provide the row names of our results table as a key, and specify that keytype=ENSEMBL. The column argument tells the mapIds() function which information we want, and the multiVals argument tells the function what to do if there are multiple possible values for a single input value. Here we ask to just give us back the first one that occurs in the database.
+
+```{r}
+mycounts$symbol <- mapIds(org.Hs.eg.db,
+                     keys=row.names(mycounts),
+                     column="SYMBOL",
+                     keytype="ENSEMBL",
+                     multiVals="first")
+head(mycounts)
+```
+
+## DESeq2 Analysis
+
+```{r}
+#Loud our DESeq2 library
+library(DESeq2)
+```
+
+
+Build our **D**ESeq **D**ata **S**et
+```{r}
+dds <- DESeqDataSetFromMatrix(countData=counts, 
+                              colData=metadata, 
+                              design=~dex, 
+                              tidy=TRUE)
+dds
+```
+Next, let’s run the DESeq analysis workflow on the dataset, and reassign the resulting object back to the same variable. Before we start, dds is a bare-bones DESeqDataSet. The DESeq() function takes a DESeqDataSet and returns a DESeqDataSet, but with lots of other information filled in (normalization, dispersion estimates, differential expression results, etc). Notice how if we try to access these objects before running the analysis, nothing exists.
+
+```{r}
+sizeFactors(dds)
+dispersions(dds)
+dds <- DESeq(dds)
+dds
+```
+
+Get our results
+```{r}
+res <- results(dds)
+res
+summary(res)
+```
+
+## Volcano plot of Gene set enrichment
+
+```{r}
+res$sig <- res$padj<0.05 & abs(res$log2FoldChange)>2
+
+# How many of each?
+table(res$sig)
+```
+
+```{r}
+sum(is.na(res$sig))
+```
+
+```{r}
+ # Set the color palette for our plot
+palette( c("gray","blue") )
+
+plot( res$log2FoldChange,  -log(res$padj), 
+ col=res$sig+1, ylab="-Log(P-value)", xlab="Log2(FoldChange)")
+
+# Add some cut-off lines
+abline(v=c(-2,2), col="darkgray", lty=2)
+abline(h=-log(0.1), col="darkgray", lty=2)
+```
+
+```{r}
+# Setup our custom point color vector 
+mycols <- rep("gray", nrow(res))
+mycols[ abs(res$log2FoldChange) > 2 ]  <- "red" 
+
+inds <- (res$padj < 0.01) & (abs(res$log2FoldChange) > 2 )
+mycols[ inds ] <- "blue"
+
+#Volcano plot with custom colors 
+plot( res$log2FoldChange,  -log(res$padj), 
+ col=mycols, ylab="-Log(P-value)", xlab="Log2(FoldChange)" )
+
+abline(v=c(-2,2), col="gray", lty=2)
+abline(h=-log(0.1), col="gray", lty=2)
+```
+
